@@ -1,0 +1,62 @@
+[
+  {
+    "id": "warrior_beginner_basic_sword",
+    "name": "入門者用ベーシックソード",
+    "class": "warrior",
+    "rarity": "common",
+    "weaponType": "sword_shield",
+    "requiredLevel": 5,
+    "attackMin": 94,
+    "attackMax": 126,
+    "normalAttack": 94,
+    "mainStat": "STR",
+    "statScale": 1,
+    "bonusDamage": 183.8,
+    "durability": 85,
+    "weight": 5.1,
+    "effects": []
+  },
+  {
+    "id": "warrior_short_sword",
+    "name": "ショートソード",
+    "class": "warrior",
+    "rarity": "common",
+    "weaponType": "sword_shield",
+    "requiredLevel": 20,
+    "attackMin": 263,
+    "attackMax": 336,
+    "normalAttack": 263,
+    "mainStat": "STR",
+    "statScale": 1.5,
+    "bonusDamage": 275.7,
+    "durability": 95,
+    "weight": 5.1,
+    "effects": []
+  },
+  {
+    "id": "warrior_twin_fang",
+    "name": "ツインファング",
+    "class": "warrior",
+    "rarity": "unique",
+    "weaponType": "sword_shield",
+    "requiredLevel": 55,
+    "attackMin": 1260,
+    "attackMax": 1862,
+    "normalAttack": 1260,
+    "mainStat": "STR",
+    "statScale": 3.5,
+    "bonusDamage": 643.3,
+    "durability": 135,
+    "weight": 5.1,
+    "effects": [
+      {
+        "id": "attack_power",
+        "value": 408
+      },
+      {
+        "id": "additional_attack_rate",
+        "value": 10
+      }
+    ]
+  }
+]
