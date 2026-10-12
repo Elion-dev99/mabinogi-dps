@@ -1,11 +1,105 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>マビノギモバイル DPS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>マビノギモバイル図鑑</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .rarity {
+      color: gold;
+      margin-bottom: 8px;
+    }
+
+    .stat {
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <h1>マビノギモバイル DPSツール</h1>
-  <p>開発中...</p>
+
+<h1>戦士武器図鑑</h1>
+
+<div id="weapon-list" class="grid"></div>
+
+<script>
+async function loadWeapons() {
+  const response =
+    await fetch("./data/weapons/warrior.json");
+
+  const weapons =
+    await response.json();
+
+  const container =
+    document.getElementById("weapon-list");
+
+  container.innerHTML =
+    weapons.map(weapon => `
+      <div class="card">
+        <div class="name">
+          ${weapon.name}
+        </div>
+
+        <div class="rarity">
+          ${weapon.rarity}
+        </div>
+
+        <div class="stat">
+          Lv ${weapon.requiredLevel}
+        </div>
+
+        <div class="stat">
+          ${weapon.attackMin}
+          ~
+          ${weapon.attackMax}
+        </div>
+
+        <div class="stat">
+          ${weapon.mainStat}
+          x${weapon.statScale}
+        </div>
+
+        <div class="stat">
+          Bonus ${weapon.bonusDamage}
+        </div>
+      </div>
+    `).join("");
+}
+
+loadWeapons();
+</script>
+
 </body>
 </html>
