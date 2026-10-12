@@ -1,105 +1,1585 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#07101f" />
+    <meta
+      name="description"
+      content="マビノギモバイルのビルドシミュレーター"
+    />
 
-  <title>マビノギモバイル図鑑</title>
+    <title>マビノギモバイル ビルドシミュレーター</title>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-      padding: 20px;
-    }
+    <style>
+      :root {
+        color-scheme: dark;
 
-    h1 {
-      margin-bottom: 24px;
-    }
+        --background: #07101f;
+        --background-secondary: #0b1628;
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
-      gap: 16px;
-    }
+        --surface: #152238;
+        --surface-light: #1b2b45;
+        --surface-hover: #223651;
 
-    .card {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 16px;
-    }
+        --border: #2b3d58;
+        --border-strong: #3a5070;
 
-    .name {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+        --text: #f8fafc;
+        --text-secondary: #c3cddd;
+        --text-muted: #8290a5;
 
-    .rarity {
-      color: gold;
-      margin-bottom: 8px;
-    }
+        --accent: #ffd500;
+        --accent-soft: rgba(255, 213, 0, 0.12);
 
-    .stat {
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
+        --success: #4ade80;
+        --success-soft: rgba(74, 222, 128, 0.1);
 
-<h1>戦士武器図鑑</h1>
+        --danger: #fb7185;
+        --danger-soft: rgba(251, 113, 133, 0.1);
 
-<div id="weapon-list" class="grid"></div>
+        --info: #60a5fa;
+        --info-soft: rgba(96, 165, 250, 0.1);
 
-<script>
-async function loadWeapons() {
-  const response =
-    await fetch("./data/weapons/warrior.json");
+        --radius-small: 12px;
+        --radius-medium: 18px;
+        --radius-large: 24px;
 
-  const weapons =
-    await response.json();
+        --shadow:
+          0 18px 45px rgba(0, 0, 0, 0.24),
+          0 2px 8px rgba(0, 0, 0, 0.18);
 
-  const container =
-    document.getElementById("weapon-list");
+        --bottom-navigation-height: 74px;
+      }
 
-  container.innerHTML =
-    weapons.map(weapon => `
-      <div class="card">
-        <div class="name">
-          ${weapon.name}
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--background);
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        padding-bottom: calc(
+          var(--bottom-navigation-height) + env(safe-area-inset-bottom)
+        );
+
+        color: var(--text);
+        background:
+          radial-gradient(
+            circle at 80% 0%,
+            rgba(255, 213, 0, 0.07),
+            transparent 26rem
+          ),
+          linear-gradient(
+            180deg,
+            var(--background),
+            var(--background-secondary)
+          );
+
+        font-family:
+          Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI",
+          "Meiryo", sans-serif;
+        line-height: 1.5;
+      }
+
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+
+      button,
+      select {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled,
+      select:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(7, 16, 31, 0.88);
+        backdrop-filter: blur(18px);
+      }
+
+      .header-inner {
+        display: flex;
+        width: min(100% - 32px, 720px);
+        min-height: 64px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0 auto;
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .brand-title {
+        overflow: hidden;
+        margin: 0;
+
+        font-size: 17px;
+        font-weight: 850;
+        letter-spacing: 0.01em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand-subtitle {
+        margin: 2px 0 0;
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .beta-badge {
+        flex: 0 0 auto;
+        padding: 5px 9px;
+
+        border: 1px solid rgba(255, 213, 0, 0.35);
+        border-radius: 999px;
+
+        color: var(--accent);
+        background: var(--accent-soft);
+
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.06em;
+      }
+
+      .main {
+        width: min(100% - 28px, 720px);
+        margin: 0 auto;
+        padding: 26px 0 44px;
+      }
+
+      .hero {
+        margin-bottom: 22px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .hero-title {
+        margin: 0;
+        font-size: clamp(26px, 7vw, 38px);
+        line-height: 1.18;
+      }
+
+      .hero-description {
+        margin: 10px 0 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.75;
+      }
+
+      .alert {
+        display: none;
+        margin-bottom: 16px;
+        padding: 14px 15px;
+
+        border: 1px solid rgba(251, 113, 133, 0.3);
+        border-radius: var(--radius-small);
+
+        color: #fecdd3;
+        background: var(--danger-soft);
+
+        font-size: 13px;
+      }
+
+      .alert.is-visible {
+        display: block;
+      }
+
+      .alert-title {
+        margin: 0 0 4px;
+        font-weight: 850;
+      }
+
+      .alert-message {
+        margin: 0;
+        line-height: 1.65;
+      }
+
+      .alert-actions {
+        margin-top: 12px;
+      }
+
+      .loading {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 13px 15px;
+
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        border-radius: var(--radius-small);
+
+        color: #bfdbfe;
+        background: var(--info-soft);
+
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .loading.is-visible {
+        display: flex;
+      }
+
+      .spinner {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+
+        border: 2px solid rgba(191, 219, 254, 0.25);
+        border-top-color: #bfdbfe;
+        border-radius: 50%;
+
+        animation: spin 700ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .summary-card {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 16px;
+        padding: 22px;
+
+        border: 1px solid rgba(255, 213, 0, 0.22);
+        border-radius: var(--radius-large);
+
+        background:
+          radial-gradient(
+            circle at top right,
+            rgba(255, 213, 0, 0.12),
+            transparent 16rem
+          ),
+          linear-gradient(145deg, #182741, #111d31);
+
+        box-shadow: var(--shadow);
+      }
+
+      .summary-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .summary-value {
+        margin: 6px 0 0;
+        font-size: clamp(32px, 11vw, 52px);
+        font-weight: 900;
+        line-height: 1.06;
+        letter-spacing: -0.035em;
+      }
+
+      .summary-unit {
+        margin-left: 5px;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .summary-note {
+        margin: 12px 0 0;
+        color: var(--text-muted);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .summary-stat {
+        min-width: 0;
+        padding: 13px;
+
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .summary-stat-label {
+        color: var(--text-muted);
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .summary-stat-value {
+        overflow: hidden;
+        margin-top: 4px;
+
+        font-size: 17px;
+        font-weight: 850;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .section {
+        margin-top: 16px;
+        padding: 19px;
+
+        border: 1px solid var(--border);
+        border-radius: var(--radius-medium);
+
+        background: linear-gradient(
+          145deg,
+          rgba(27, 43, 69, 0.96),
+          rgba(21, 34, 56, 0.96)
+        );
+
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 15px;
+      }
+
+      .section-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 850;
+      }
+
+      .section-count {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .field + .field {
+        margin-top: 14px;
+      }
+
+      .field-label {
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .select {
+        width: 100%;
+        min-height: 52px;
+        padding: 0 40px 0 14px;
+
+        border: 1px solid var(--border-strong);
+        border-radius: 13px;
+        outline: none;
+
+        color: var(--text);
+        background-color: #0d192a;
+
+        appearance: none;
+
+        background-image:
+          linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+          linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+        background-position:
+          calc(100% - 19px) calc(50% - 2px),
+          calc(100% - 13px) calc(50% - 2px);
+        background-repeat: no-repeat;
+        background-size: 6px 6px, 6px 6px;
+      }
+
+      .select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255, 213, 0, 0.09);
+      }
+
+      .equipment-card {
+        display: none;
+        margin-top: 16px;
+        padding: 16px;
+
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 15px;
+
+        background: rgba(7, 16, 31, 0.46);
+      }
+
+      .equipment-card.is-visible {
+        display: block;
+      }
+
+      .equipment-top {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .equipment-name {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 850;
+      }
+
+      .rarity-badge {
+        flex: 0 0 auto;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 850;
+      }
+
+      .rarity-common {
+        color: #cbd5e1;
+        background: rgba(203, 213, 225, 0.1);
+      }
+
+      .rarity-rare {
+        color: #93c5fd;
+        background: rgba(96, 165, 250, 0.12);
+      }
+
+      .rarity-epic {
+        color: #d8b4fe;
+        background: rgba(192, 132, 252, 0.12);
+      }
+
+      .rarity-unique {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .rarity-legendary {
+        color: #fdba74;
+        background: rgba(251, 146, 60, 0.12);
+      }
+
+      .equipment-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .meta-chip {
+        padding: 5px 8px;
+
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 8px;
+
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.035);
+
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .equipment-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        margin-top: 15px;
+      }
+
+      .equipment-stat {
+        padding: 11px;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .equipment-stat-label {
+        color: var(--text-muted);
+        font-size: 10px;
+      }
+
+      .equipment-stat-value {
+        margin-top: 3px;
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .empty-slot-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .empty-slot {
+        display: flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 14px;
+
+        border: 1px dashed var(--border-strong);
+        border-radius: 13px;
+
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.02);
+
+        font-size: 12px;
+      }
+
+      .empty-slot-name {
+        color: var(--text-secondary);
+        font-weight: 800;
+      }
+
+      .effect-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .effect-empty {
+        padding: 18px;
+
+        border: 1px dashed var(--border);
+        border-radius: 13px;
+
+        color: var(--text-muted);
+        text-align: center;
+        font-size: 12px;
+      }
+
+      .effect-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px;
+
+        border: 1px solid rgba(74, 222, 128, 0.18);
+        border-radius: 12px;
+
+        background: var(--success-soft);
+      }
+
+      .effect-icon {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        flex: 0 0 auto;
+        place-items: center;
+
+        border-radius: 50%;
+        color: var(--success);
+        background: rgba(74, 222, 128, 0.1);
+
+        font-weight: 900;
+      }
+
+      .effect-name {
+        color: #dcfce7;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .effect-value {
+        margin-top: 2px;
+        color: #bbf7d0;
+        font-size: 11px;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .button {
+        min-height: 46px;
+        padding: 0 16px;
+
+        border: 1px solid transparent;
+        border-radius: 12px;
+
+        font-weight: 850;
+      }
+
+      .button-primary {
+        color: #231c00;
+        background: var(--accent);
+      }
+
+      .button-secondary {
+        border-color: var(--border);
+        color: var(--text-secondary);
+        background: var(--surface-light);
+      }
+
+      .calculation-notice {
+        margin-top: 16px;
+        padding: 14px;
+
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        border-radius: 13px;
+
+        color: #bfdbfe;
+        background: var(--info-soft);
+
+        font-size: 11px;
+        line-height: 1.7;
+      }
+
+      .bottom-navigation {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+
+        min-height: calc(
+          var(--bottom-navigation-height) + env(safe-area-inset-bottom)
+        );
+
+        padding: 7px 12px env(safe-area-inset-bottom);
+
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(9, 18, 32, 0.94);
+        backdrop-filter: blur(20px);
+      }
+
+      .bottom-navigation-inner {
+        display: grid;
+        width: min(100%, 720px);
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin: 0 auto;
+      }
+
+      .navigation-item {
+        display: grid;
+        min-height: 58px;
+        place-items: center;
+        padding: 5px;
+
+        border: 0;
+        border-radius: 12px;
+
+        color: var(--text-muted);
+        background: transparent;
+
+        text-decoration: none;
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .navigation-icon {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 19px;
+        line-height: 1;
+      }
+
+      .navigation-item.is-active {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      @media (min-width: 640px) {
+        .main {
+          padding-top: 34px;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .equipment-stats {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <h1 class="brand-title">Mabinogi Build Planner</h1>
+          <p class="brand-subtitle">マビノギモバイル非公式ツール</p>
         </div>
 
-        <div class="rarity">
-          ${weapon.rarity}
-        </div>
-
-        <div class="stat">
-          Lv ${weapon.requiredLevel}
-        </div>
-
-        <div class="stat">
-          ${weapon.attackMin}
-          ~
-          ${weapon.attackMax}
-        </div>
-
-        <div class="stat">
-          ${weapon.mainStat}
-          x${weapon.statScale}
-        </div>
-
-        <div class="stat">
-          Bonus ${weapon.bonusDamage}
-        </div>
+        <span class="beta-badge">BETA</span>
       </div>
-    `).join("");
-}
+    </header>
 
-loadWeapons();
-</script>
+    <main class="main">
+      <section class="hero">
+        <span class="eyebrow">Build Simulator</span>
+        <h2 class="hero-title">戦士ビルド</h2>
+        <p class="hero-description">
+          JSONマスターデータから武器を選択し、装備性能と特殊効果を確認できます。
+        </p>
+      </section>
 
-</body>
+      <section
+        id="error-alert"
+        class="alert"
+        role="alert"
+        aria-live="assertive"
+      >
+        <p class="alert-title">データの読み込みに失敗しました</p>
+        <p id="error-message" class="alert-message"></p>
+
+        <div class="alert-actions">
+          <button
+            id="retry-button"
+            class="button button-secondary"
+            type="button"
+          >
+            再読み込み
+          </button>
+        </div>
+      </section>
+
+      <div
+        id="loading"
+        class="loading"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="spinner" aria-hidden="true"></span>
+        武器データを読み込んでいます
+      </div>
+
+      <section class="summary-card">
+        <p class="summary-label">現在の武器攻撃力</p>
+
+        <p class="summary-value">
+          <span id="summary-attack">0 ～ 0</span>
+        </p>
+
+        <p class="summary-note">
+          現在は選択武器の表示値です。ダメージ計算式の検証後に、
+          敵防御やクリティカルを含む推定DPSへ拡張します。
+        </p>
+
+        <div class="summary-grid">
+          <div class="summary-stat">
+            <div class="summary-stat-label">選択武器</div>
+            <div
+              id="summary-weapon-name"
+              class="summary-stat-value"
+            >
+              未選択
+            </div>
+          </div>
+
+          <div class="summary-stat">
+            <div class="summary-stat-label">通常攻撃</div>
+            <div
+              id="summary-normal-attack"
+              class="summary-stat-value"
+            >
+              0
+            </div>
+          </div>
+
+          <div class="summary-stat">
+            <div class="summary-stat-label">主能力値</div>
+            <div
+              id="summary-main-stat"
+              class="summary-stat-value"
+            >
+              未設定
+            </div>
+          </div>
+
+          <div class="summary-stat">
+            <div class="summary-stat-label">ボーナス</div>
+            <div
+              id="summary-bonus-damage"
+              class="summary-stat-value"
+            >
+              0
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h3 class="section-title">装備構成</h3>
+          <span id="weapon-count" class="section-count">0件</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="weapon-select">
+            武器
+          </label>
+
+          <select
+            id="weapon-select"
+            class="select"
+            disabled
+          >
+            <option value="">武器を選択してください</option>
+          </select>
+        </div>
+
+        <article
+          id="selected-weapon-card"
+          class="equipment-card"
+          aria-live="polite"
+        >
+          <div class="equipment-top">
+            <h4
+              id="selected-weapon-name"
+              class="equipment-name"
+            ></h4>
+
+            <span
+              id="selected-weapon-rarity"
+              class="rarity-badge"
+            ></span>
+          </div>
+
+          <div class="equipment-meta">
+            <span
+              id="selected-weapon-level"
+              class="meta-chip"
+            ></span>
+
+            <span
+              id="selected-weapon-type"
+              class="meta-chip"
+            ></span>
+          </div>
+
+          <div class="equipment-stats">
+            <div class="equipment-stat">
+              <div class="equipment-stat-label">
+                攻撃力
+              </div>
+              <div
+                id="selected-weapon-attack"
+                class="equipment-stat-value"
+              ></div>
+            </div>
+
+            <div class="equipment-stat">
+              <div class="equipment-stat-label">
+                通常攻撃
+              </div>
+              <div
+                id="selected-weapon-normal"
+                class="equipment-stat-value"
+              ></div>
+            </div>
+
+            <div class="equipment-stat">
+              <div class="equipment-stat-label">
+                能力値倍率
+              </div>
+              <div
+                id="selected-weapon-scale"
+                class="equipment-stat-value"
+              ></div>
+            </div>
+
+            <div class="equipment-stat">
+              <div class="equipment-stat-label">
+                ボーナス
+              </div>
+              <div
+                id="selected-weapon-bonus"
+                class="equipment-stat-value"
+              ></div>
+            </div>
+          </div>
+        </article>
+
+        <div class="empty-slot-list" style="margin-top: 14px">
+          <div class="empty-slot">
+            <span class="empty-slot-name">頭装備</span>
+            <span>データ準備中</span>
+          </div>
+
+          <div class="empty-slot">
+            <span class="empty-slot-name">胴装備</span>
+            <span>データ準備中</span>
+          </div>
+
+          <div class="empty-slot">
+            <span class="empty-slot-name">アクセサリ</span>
+            <span>データ準備中</span>
+          </div>
+
+          <div class="empty-slot">
+            <span class="empty-slot-name">ルーン</span>
+            <span>データ準備中</span>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button
+            id="reset-button"
+            class="button button-secondary"
+            type="button"
+          >
+            選択解除
+          </button>
+
+          <button
+            id="save-button"
+            class="button button-primary"
+            type="button"
+          >
+            ビルド保存
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h3 class="section-title">装備効果</h3>
+        </div>
+
+        <div id="effect-list" class="effect-list">
+          <div class="effect-empty">
+            特殊効果のある武器を選択すると、ここに表示されます。
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h3 class="section-title">DPS計算</h3>
+          <span class="section-count">準備中</span>
+        </div>
+
+        <div class="calculation-notice">
+          現在はダメージ計算式が未検証のため、架空のDPS値を表示しません。
+          今後、スキル係数、クリティカル、敵防御、発動時間を追加します。
+        </div>
+      </section>
+    </main>
+
+    <nav
+      class="bottom-navigation"
+      aria-label="メインナビゲーション"
+    >
+      <div class="bottom-navigation-inner">
+        #collection
+          <span class="navigation-icon" aria-hidden="true">▦</span>
+          図鑑
+        </a>
+
+        #build
+          <span class="navigation-icon" aria-hidden="true">◇</span>
+          ビルド
+        </a>
+
+        #dps
+          <span class="navigation-icon" aria-hidden="true">∑</span>
+          DPS
+        </a>
+      </div>
+    </nav>
+
+    <script>
+      "use strict";
+
+      const WEAPON_DATA_URL = "./data/weapons/warrior.json";
+      const STORAGE_KEY = "mabinogi-build-warrior-weapon-id";
+
+      const REQUIRED_WEAPON_FIELDS = [
+        "id",
+        "name",
+        "class",
+        "rarity",
+        "weaponType",
+        "requiredLevel",
+        "attackMin",
+        "attackMax",
+        "normalAttack",
+        "mainStat",
+        "statScale",
+        "bonusDamage",
+        "durability",
+        "weight",
+        "effects",
+      ];
+
+      let weapons = [];
+      let selectedWeapon = null;
+
+      const elements = {
+        errorAlert: document.getElementById("error-alert"),
+        errorMessage: document.getElementById("error-message"),
+        retryButton: document.getElementById("retry-button"),
+
+        loading: document.getElementById("loading"),
+
+        weaponSelect: document.getElementById("weapon-select"),
+        weaponCount: document.getElementById("weapon-count"),
+
+        summaryAttack: document.getElementById("summary-attack"),
+        summaryWeaponName: document.getElementById(
+          "summary-weapon-name",
+        ),
+        summaryNormalAttack: document.getElementById(
+          "summary-normal-attack",
+        ),
+        summaryMainStat: document.getElementById(
+          "summary-main-stat",
+        ),
+        summaryBonusDamage: document.getElementById(
+          "summary-bonus-damage",
+        ),
+
+        selectedWeaponCard: document.getElementById(
+          "selected-weapon-card",
+        ),
+        selectedWeaponName: document.getElementById(
+          "selected-weapon-name",
+        ),
+        selectedWeaponRarity: document.getElementById(
+          "selected-weapon-rarity",
+        ),
+        selectedWeaponLevel: document.getElementById(
+          "selected-weapon-level",
+        ),
+        selectedWeaponType: document.getElementById(
+          "selected-weapon-type",
+        ),
+        selectedWeaponAttack: document.getElementById(
+          "selected-weapon-attack",
+        ),
+        selectedWeaponNormal: document.getElementById(
+          "selected-weapon-normal",
+        ),
+        selectedWeaponScale: document.getElementById(
+          "selected-weapon-scale",
+        ),
+        selectedWeaponBonus: document.getElementById(
+          "selected-weapon-bonus",
+        ),
+
+        effectList: document.getElementById("effect-list"),
+
+        resetButton: document.getElementById("reset-button"),
+        saveButton: document.getElementById("save-button"),
+      };
+
+      function isNonEmptyString(value) {
+        return typeof value === "string" && value.trim().length > 0;
+      }
+
+      function isFiniteNumber(value) {
+        return typeof value === "number" && Number.isFinite(value);
+      }
+
+      function validateWeapon(weapon, index) {
+        if (
+          weapon === null ||
+          typeof weapon !== "object" ||
+          Array.isArray(weapon)
+        ) {
+          throw new Error(
+            `${index + 1}件目のデータがオブジェクトではありません。`,
+          );
+        }
+
+        for (const field of REQUIRED_WEAPON_FIELDS) {
+          if (!(field in weapon)) {
+            throw new Error(
+              `${index + 1}件目に必須項目「${field}」がありません。`,
+            );
+          }
+        }
+
+        if (!isNonEmptyString(weapon.id)) {
+          throw new Error(
+            `${index + 1}件目のidが不正です。`,
+          );
+        }
+
+        if (!isNonEmptyString(weapon.name)) {
+          throw new Error(
+            `${index + 1}件目のnameが不正です。`,
+          );
+        }
+
+        const numericFields = [
+          "requiredLevel",
+          "attackMin",
+          "attackMax",
+          "normalAttack",
+          "statScale",
+          "bonusDamage",
+          "durability",
+          "weight",
+        ];
+
+        for (const field of numericFields) {
+          if (!isFiniteNumber(weapon[field])) {
+            throw new Error(
+              `${weapon.name}の「${field}」が数値ではありません。`,
+            );
+          }
+        }
+
+        if (weapon.attackMin > weapon.attackMax) {
+          throw new Error(
+            `${weapon.name}の最小攻撃力が最大攻撃力を上回っています。`,
+          );
+        }
+
+        if (!Array.isArray(weapon.effects)) {
+          throw new Error(
+            `${weapon.name}のeffectsが配列ではありません。`,
+          );
+        }
+
+        return weapon;
+      }
+
+      function validateWeapons(data) {
+        if (!Array.isArray(data)) {
+          throw new Error(
+            "warrior.jsonのルートは配列にしてください。",
+          );
+        }
+
+        const validatedWeapons = data.map(validateWeapon);
+        const idSet = new Set();
+
+        for (const weapon of validatedWeapons) {
+          if (idSet.has(weapon.id)) {
+            throw new Error(
+              `重複した武器IDがあります: ${weapon.id}`,
+            );
+          }
+
+          idSet.add(weapon.id);
+        }
+
+        return validatedWeapons;
+      }
+
+      function setLoading(isLoading) {
+        elements.loading.classList.toggle(
+          "is-visible",
+          isLoading,
+        );
+
+        elements.weaponSelect.disabled =
+          isLoading || weapons.length === 0;
+      }
+
+      function showError(message) {
+        elements.errorMessage.textContent = message;
+        elements.errorAlert.classList.add("is-visible");
+      }
+
+      function hideError() {
+        elements.errorMessage.textContent = "";
+        elements.errorAlert.classList.remove("is-visible");
+      }
+
+      function formatNumber(value) {
+        if (!isFiniteNumber(value)) {
+          return "0";
+        }
+
+        return new Intl.NumberFormat("ja-JP", {
+          maximumFractionDigits: 2,
+        }).format(value);
+      }
+
+      function getRarityLabel(rarity) {
+        const labels = {
+          common: "コモン",
+          normal: "ノーマル",
+          rare: "レア",
+          epic: "エピック",
+          unique: "ユニーク",
+          legendary: "レジェンダリー",
+        };
+
+        return labels[rarity] ?? rarity;
+      }
+
+      function getWeaponTypeLabel(weaponType) {
+        const labels = {
+          sword_shield: "剣と盾",
+          greatsword: "大剣",
+          bow: "弓",
+          crossbow: "クロスボウ",
+          longbow: "ロングボウ",
+          staff: "スタッフ",
+          wand: "ワンド",
+        };
+
+        return labels[weaponType] ?? weaponType;
+      }
+
+      function getEffectLabel(effectId) {
+        const labels = {
+          attack_power: "攻撃力",
+          unique_attack_power: "攻撃力",
+          additional_attack_rate: "追加攻撃率",
+          dot_damage: "持続ダメージ",
+          critical_rate: "クリティカル率",
+          critical_damage: "クリティカルダメージ",
+          skill_power: "スキル威力",
+          fast_skill: "スキル速度",
+        };
+
+        return labels[effectId] ?? effectId;
+      }
+
+      function getEffectUnit(effectId) {
+        const percentageEffects = new Set([
+          "additional_attack_rate",
+          "critical_rate",
+          "critical_damage",
+          "skill_power",
+          "fast_skill",
+        ]);
+
+        return percentageEffects.has(effectId) ? "%" : "";
+      }
+
+      function renderWeaponOptions() {
+        elements.weaponSelect.innerHTML = "";
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "武器を選択してください";
+        elements.weaponSelect.appendChild(placeholder);
+
+        const sortedWeapons = [...weapons].sort((left, right) => {
+          if (left.requiredLevel !== right.requiredLevel) {
+            return left.requiredLevel - right.requiredLevel;
+          }
+
+          return left.name.localeCompare(right.name, "ja");
+        });
+
+        for (const weapon of sortedWeapons) {
+          const option = document.createElement("option");
+          option.value = weapon.id;
+          option.textContent =
+            `Lv${weapon.requiredLevel} ${weapon.name}`;
+          elements.weaponSelect.appendChild(option);
+        }
+
+        elements.weaponCount.textContent =
+          `${weapons.length}件`;
+
+        elements.weaponSelect.disabled = weapons.length === 0;
+      }
+
+      function renderEffects(effects) {
+        elements.effectList.innerHTML = "";
+
+        if (!Array.isArray(effects) || effects.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "effect-empty";
+          empty.textContent =
+            "この武器に登録された特殊効果はありません。";
+          elements.effectList.appendChild(empty);
+          return;
+        }
+
+        for (const effect of effects) {
+          const item = document.createElement("div");
+          item.className = "effect-item";
+
+          const icon = document.createElement("div");
+          icon.className = "effect-icon";
+          icon.textContent = "✓";
+          icon.setAttribute("aria-hidden", "true");
+
+          const content = document.createElement("div");
+
+          const name = document.createElement("div");
+          name.className = "effect-name";
+          name.textContent = getEffectLabel(effect.id);
+
+          const value = document.createElement("div");
+          value.className = "effect-value";
+
+          const normalizedValue = isFiniteNumber(effect.value)
+            ? formatNumber(effect.value)
+            : "値未設定";
+
+          value.textContent =
+            `+${normalizedValue}${getEffectUnit(effect.id)}`;
+
+          content.append(name, value);
+          item.append(icon, content);
+          elements.effectList.appendChild(item);
+        }
+      }
+
+      function renderEmptyBuild() {
+        elements.summaryAttack.textContent = "0 ～ 0";
+        elements.summaryWeaponName.textContent = "未選択";
+        elements.summaryNormalAttack.textContent = "0";
+        elements.summaryMainStat.textContent = "未設定";
+        elements.summaryBonusDamage.textContent = "0";
+
+        elements.selectedWeaponCard.classList.remove(
+          "is-visible",
+        );
+
+        renderEffects([]);
+      }
+
+      function renderSelectedWeapon(weapon) {
+        if (!weapon) {
+          renderEmptyBuild();
+          return;
+        }
+
+        elements.summaryAttack.textContent =
+          `${formatNumber(weapon.attackMin)} ～ ` +
+          `${formatNumber(weapon.attackMax)}`;
+
+        elements.summaryWeaponName.textContent = weapon.name;
+        elements.summaryNormalAttack.textContent =
+          formatNumber(weapon.normalAttack);
+        elements.summaryMainStat.textContent =
+          `${weapon.mainStat} ×${formatNumber(weapon.statScale)}`;
+        elements.summaryBonusDamage.textContent =
+          formatNumber(weapon.bonusDamage);
+
+        elements.selectedWeaponName.textContent = weapon.name;
+
+        const rarityClass =
+          `rarity-${weapon.rarity.toLowerCase()}`;
+
+        elements.selectedWeaponRarity.className =
+          `rarity-badge ${rarityClass}`;
+        elements.selectedWeaponRarity.textContent =
+          getRarityLabel(weapon.rarity);
+
+        elements.selectedWeaponLevel.textContent =
+          `装備Lv ${weapon.requiredLevel}`;
+        elements.selectedWeaponType.textContent =
+          getWeaponTypeLabel(weapon.weaponType);
+
+        elements.selectedWeaponAttack.textContent =
+          `${formatNumber(weapon.attackMin)} ～ ` +
+          `${formatNumber(weapon.attackMax)}`;
+
+        elements.selectedWeaponNormal.textContent =
+          formatNumber(weapon.normalAttack);
+
+        elements.selectedWeaponScale.textContent =
+          `${weapon.mainStat} ×${formatNumber(weapon.statScale)}`;
+
+        elements.selectedWeaponBonus.textContent =
+          formatNumber(weapon.bonusDamage);
+
+        elements.selectedWeaponCard.classList.add(
+          "is-visible",
+        );
+
+        renderEffects(weapon.effects);
+      }
+
+      function selectWeaponById(weaponId, persist = true) {
+        selectedWeapon =
+          weapons.find((weapon) => weapon.id === weaponId) ??
+          null;
+
+        elements.weaponSelect.value =
+          selectedWeapon?.id ?? "";
+
+        renderSelectedWeapon(selectedWeapon);
+
+        if (persist) {
+          if (selectedWeapon) {
+            window.localStorage.setItem(
+              STORAGE_KEY,
+              selectedWeapon.id,
+            );
+          } else {
+            window.localStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      }
+
+      function restoreSavedWeapon() {
+        const savedWeaponId =
+          window.localStorage.getItem(STORAGE_KEY);
+
+        if (!savedWeaponId) {
+          renderEmptyBuild();
+          return;
+        }
+
+        const exists = weapons.some(
+          (weapon) => weapon.id === savedWeaponId,
+        );
+
+        if (!exists) {
+          window.localStorage.removeItem(STORAGE_KEY);
+          renderEmptyBuild();
+          return;
+        }
+
+        selectWeaponById(savedWeaponId, false);
+      }
+
+      async function loadWeapons() {
+        hideError();
+        setLoading(true);
+
+        try {
+          const response = await fetch(WEAPON_DATA_URL, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-cache",
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `HTTP ${response.status}: ` +
+              "warrior.jsonを取得できませんでした。",
+            );
+          }
+
+          let data;
+
+          try {
+            data = await response.json();
+          } catch {
+            throw new Error(
+              "warrior.jsonをJSONとして解析できませんでした。"+
+              "カンマや括弧を確認してください。",
+            );
+          }
+
+          weapons = validateWeapons(data);
+
+          renderWeaponOptions();
+          restoreSavedWeapon();
+        } catch (error) {
+          console.error("武器データの読込エラー:", error);
+
+          weapons = [];
+          selectedWeapon = null;
+
+          renderWeaponOptions();
+          renderEmptyBuild();
+
+          const message =
+            error instanceof Error
+              ? error.message
+              : "不明なエラーが発生しました。";
+
+          showError(message);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      elements.weaponSelect.addEventListener(
+        "change",
+        (event) => {
+          const target = event.target;
+
+          if (!(target instanceof HTMLSelectElement)) {
+            return;
+          }
+
+          selectWeaponById(target.value);
+        },
+      );
+
+      elements.resetButton.addEventListener("click", () => {
+        selectWeaponById("");
+      });
+
+      elements.saveButton.addEventListener("click", () => {
+        if (!selectedWeapon) {
+          showError(
+            "保存する武器が選択されていません。",
+          );
+          return;
+        }
+
+        hideError();
+
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          selectedWeapon.id,
+        );
+
+        elements.saveButton.textContent = "保存しました";
+
+        window.setTimeout(() => {
+          elements.saveButton.textContent = "ビルド保存";
+        }, 1400);
+      });
+
+      elements.retryButton.addEventListener("click", () => {
+        loadWeapons();
+      });
+
+      loadWeapons();
+    </script>
+  </body>
 </html>
